@@ -125,8 +125,6 @@ def askInput(state, playerSymbol):
 #Fro clearing the terminal
 clear = lambda: os.system('cls' if os.name=='nt' else 'clear')
 clear()
-#Initial state is an empty board
-board = [" "," "," "," "," "," "," "," "," "]
 #If the quotes file is available, load them
 if os.path.isfile("./TicTacQuotes.txt"):
 	f = open('./TicTacQuotes.txt', 'r')
@@ -134,61 +132,66 @@ if os.path.isfile("./TicTacQuotes.txt"):
 	f.close()
 else:
 	quotes = []
-#Ask player for a coin toss, and assign the turn order
-coinguess= input("(H)eads or (t)ails?:")
-cointhrow = randint(0,1)
-if cointhrow == 0:
-	cointhrow = "h"
-else:
-	cointhrow = "t"
-if coinguess.lower() == cointhrow:
-	print("You guessed right, you are X")
-	playerTurn="X"
-else:
-	print("You guessed wrong, you are O") 
-	playerTurn="O"
-printBoard(board)
-#main loop, ends when the board is terminal
-while isTerminal(board) == 0:
-	#When it's the player's turn, ask for input and print the board
-	if getPlayer(board) == playerTurn:
-		askInput(board, playerTurn)
-		clear()
-		printBoard(board)
-	#If it's the machine's turn
-	if isTerminal(board) == 0 and getPlayer(board) != playerTurn:
-		#If the quotes are available, print one at random
-		if len(quotes) > 0:
-			print(quotes[randint(0,len(quotes)-1)])
-			print("      ― Sun Tzu, The Art of War \n\n\n")
-		newstate=board.copy()
-		#Depending who the machine is, get the best possible move
+end="y"
+while end.lower() != "n":
+	#Initial state is an empty board
+	board = [" "," "," "," "," "," "," "," "," "]
+	#Ask player for a coin toss, and assign the turn order
+	coinguess= input("(H)eads or (t)ails?:")
+	cointhrow = randint(0,1)
+	if cointhrow == 0:
+		cointhrow = "h"
+	else:
+		cointhrow = "t"
+	if coinguess.lower() == cointhrow:
+		print("You guessed right, you are X")
+		playerTurn="X"
+	else:
+		print("You guessed wrong, you are O") 
+		playerTurn="O"
+	printBoard(board)
+	#main loop, ends when the board is terminal
+	while isTerminal(board) == 0:
+		#When it's the player's turn, ask for input and print the board
+		if getPlayer(board) == playerTurn:
+			askInput(board, playerTurn)
+			clear()
+			printBoard(board)
+		#If it's the machine's turn
+		if isTerminal(board) == 0 and getPlayer(board) != playerTurn:
+			#If the quotes are available, print one at random
+			if len(quotes) > 0:
+				print(quotes[randint(0,len(quotes)-1)])
+				print("      ― Sun Tzu, The Art of War \n\n\n")
+			newstate=board.copy()
+			#Depending who the machine is, get the best possible move
+			if playerTurn == "X":
+				value=2
+				for action in getActions(board):
+					currentvalue=maxValue(getResult(board,action))
+					if currentvalue < value:
+						value=currentvalue
+						newstate=getResult(board,action)
+			else:
+				value=-2
+				for action in getActions(board):
+					currentvalue=minValue(getResult(board,action))
+					if currentvalue > value:
+						value=currentvalue
+						newstate=getResult(board,action)
+			board=newstate
+			printBoard(board)
+	#Get winner and print a message
+	if getScore(board) == 1:
 		if playerTurn == "X":
-			value=2
-			for action in getActions(board):
-				currentvalue=maxValue(getResult(board,action))
-				if currentvalue < value:
-					value=currentvalue
-					newstate=getResult(board,action)
+			print("I know you probably cheated, meatbag\n\n\n")
 		else:
-			value=-2
-			for action in getActions(board):
-				currentvalue=minValue(getResult(board,action))
-				if currentvalue > value:
-					value=currentvalue
-					newstate=getResult(board,action)
-		board=newstate
-		printBoard(board)
-#Get winner and print a message
-if getScore(board) == 1:
-	if playerTurn == "X":
-		print("I know you probably cheated, meatbag\n\n\n")
-	else:
-		print("You are no match for my superior intellect\n\n\n")
-if getScore(board) == -1:
-	if playerTurn == "O":
-		print("I know you probably cheated, meatbag\n\n\n")
-	else:
-		print("You are no match for my superior intellect\n\n\n")
-if getScore(board) == 0:
-	print("You'll have to do better\n\n\n")
+			print("You are no match for my superior intellect\n\n\n")
+	if getScore(board) == -1:
+		if playerTurn == "O":
+			print("I know you probably cheated, meatbag\n\n\n")
+		else:
+			print("You are no match for my superior intellect\n\n\n")
+	if getScore(board) == 0:
+		print("You'll have to do better\n\n\n")
+	end= input("Play again? y/n:")
